@@ -402,6 +402,7 @@ extern void vPortAPICSpuriousHandler( void );
 	portAPIC_LVT_ERROR = portAPIC_LVT_ERROR_VECTOR;
 
 	/* Set the interrupt frequency. */
+	portAPIC_LVT_TIMER = portAPIC_TIMER_PERIODIC | portAPIC_TIMER_INT_VECTOR; /* Original code misses this step. */
 	portAPIC_TMRDIV = portAPIC_DIV_16;
 	portAPIC_TIMER_INITIAL_COUNT = ( ( configCPU_CLOCK_HZ >> 4UL ) / configTICK_RATE_HZ ) - 1UL;
 }
