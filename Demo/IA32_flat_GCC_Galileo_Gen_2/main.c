@@ -101,8 +101,11 @@
 #include "TaskNotify.h"
 #include "IntQueue.h"
 
-/* Added Galileo serial support. */
-#include "galileo_support.h"
+/* For output message */
+#include "screen.h"
+
+/* Timer */
+#include "HPET.h"
 
 /* Set to 1 to sit in a loop on start up, allowing a debugger to connect to the
 application before main() executes. */
@@ -176,12 +179,12 @@ int main( void )
 	of this file. */
 	#if( mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1 )
 	{
-		g_printf_rcc( 3, 2, DEFAULT_SCREEN_COLOR, "Running main_blinky()." );
+		screen_puts( "Running main_blinky().\n" );
 		main_blinky();
 	}
 	#else
 	{
-		g_printf_rcc( 3, 2, DEFAULT_SCREEN_COLOR, "Running main_full()." );
+		screen_puts( "Running main_full().\n" );
   		main_full();
 	}
 	#endif
@@ -243,27 +246,17 @@ void vApplicationIdleHook( void )
 
 static void prvDisplayAssertion( const char * pcFile, unsigned long ulLine )
 {
-extern void vMilliSecondDelay( uint32_t DelayTime );
-const uint32_t ul500ms = 500UL;
+	/* Remove compiler warning about unused parameter. */
+	( void ) pcFile;
+	( void ) ulLine;
 
-	/* Display assertion file and line. Don't use the gated g_printf just in
-	the assert was triggered while the gating semaphore was taken.  Always print
-	on line 23. */
-	UngatedMoveToScreenPosition( 23, 2 );
-	printf( ANSI_COLOR_RED );
-	printf( "ASSERT: File = %s, Line = %u\n\r", pcFile, ulLine );
-	printf( ANSI_COLOR_RESET );
-	printf( ANSI_SHOW_CURSOR );
-	vMilliSecondDelay( ul500ms );
+	screen_puts( "prvDisplayAssertion()\n" );
 }
 /*-----------------------------------------------------------*/
 
 static void prvClearAssertionLine( void )
 {
-	UngatedMoveToScreenPosition( 23, 1 );
-	printf( ANSI_COLOR_RESET );
-	printf( ANSI_CLEAR_LINE );
-	printf( ANSI_HIDE_CURSOR );
+	screen_puts( "prvClearAssertionLine()\n" );
 }
 /*-----------------------------------------------------------*/
 
@@ -279,16 +272,10 @@ volatile uint32_t ul = 0;
 		/* Set ul to a non-zero value or press a key to step out of this
 		function in order to inspect the location of the assert(). */
 
-		/* Clear any pending key presses. */
-		while( ucGalileoGetchar() != 0 )
-		{
-			/* Nothing to do here - the key press is just discarded. */
-		}
-
 		do
 		{
-		   prvDisplayAssertion(pcFile, ulLine);
-		} while ( ( ul == pdFALSE ) && ( ucGalileoGetchar() == 0 ) );
+			prvDisplayAssertion(pcFile, ulLine);
+		} while ( ul == pdFALSE );
 
 		prvClearAssertionLine();
 	}
@@ -324,11 +311,6 @@ void vApplicationTickHook( void )
 
 static void prvSetupHardware( void )
 {
-	/* Initialise the serial port and GPIO. */
-	vInitializeGalileoSerialPort( DEBUG_SERIAL_PORT );
-	vGalileoInitializeGpioController();
-	vGalileoInitializeLegacyGPIO();
-
 	/* Initialise HPET interrupt(s) */
 	#if( ( mainCREATE_SIMPLE_BLINKY_DEMO_ONLY != 1 ) && ( hpetHPET_TIMER_IN_USE != 0 ) )
 	{
@@ -337,15 +319,11 @@ static void prvSetupHardware( void )
 	}
 	#endif
 
-	/* Setup the LED. */
-	vGalileoLegacyGPIOInitializationForLED();
-
 	/* Demonstrates how to calibrate LAPIC Timer.  The calibration value
 	calculated here may get overwritten when the scheduler starts. */
 	prvCalibrateLVTimer();
 
-	/* Print RTOS loaded message. */
-	vPrintBanner();
+	screen_clear();
 }
 /*-----------------------------------------------------------*/
 
@@ -354,36 +332,8 @@ static void prvLoopToWaitForDebugConnection( void )
 	/* Debug if define = 1. */
 	#if( mainWAIT_FOR_DEBUG_CONNECTION == 1 )
 	{
-	/* When using the debugger, set this value to pdFALSE, and the application
-	will sit in a loop at the top of main() to allow the debugger to attached
-	before the application starts running.  Once attached, set
-	ulExitResetSpinLoop to a non-zero value to leave the loop. */
-	volatile uint32_t ulExitResetSpinLoop = pdFALSE;
-
-		/* Must initialize UART before anything will print. */
-		vInitializeGalileoSerialPort( DEBUG_SERIAL_PORT );
-
-		/* RTOS loaded message. */
-		vPrintBanner();
-
-		/* Output instruction message. */
-		MoveToScreenPosition( 3, 1 );
-		g_printf( DEFAULT_SCREEN_COLOR );
-		g_printf( " Waiting for JTAG connection.\n\n\r" );
-		g_printf( ANSI_COLOR_RESET );
-		g_printf( " Once connected, either set ulExitResetSpinLoop to a non-zero value,\n\r" );
-		g_printf( " or you can [PRESS ANY KEY] to start the debug session.\n\n\r" );
-		printf( ANSI_SHOW_CURSOR );
-
-		/* Use the debugger to set the ulExitResetSpinLoop to a non-zero value
-		or press a key to exit this loop, and step through the application.  In
-		Eclipse, simple hover over the variable to see its value in a pop-over
-		box, then edit the value in the pop-over box. */
-		do
-		{
-			portNOP();
-
-		} while( ( ulExitResetSpinLoop == pdFALSE ) && ( ucGalileoGetchar() == 0 ) );
+		int i;
+		for (i = 0; i < 1000000000; i++) ;
 	}
 	#endif
 }

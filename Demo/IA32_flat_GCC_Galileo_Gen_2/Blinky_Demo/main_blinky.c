@@ -112,8 +112,8 @@
 #include "task.h"
 #include "semphr.h"
 
-/* Added Galileo SERIAL support */
-#include "galileo_support.h"
+/* For output message. */
+#include "screen.h"
 
 /* Priorities at which the tasks are created. */
 #define mainQUEUE_RECEIVE_TASK_PRIORITY		( tskIDLE_PRIORITY + 2 )
@@ -206,20 +206,18 @@ const uint32_t ulValueToSend = 100UL;
 		operation will not block - it shouldn't need to block as the queue
 		should always be empty at this point in the code. */
 		xQueueSend( xQueue, &ulValueToSend, 0U );
+		screen_puts( "Send\n" );
 	}
 }
 /*-----------------------------------------------------------*/
 
 static void prvQueueReceiveTask( void *pvParameters )
 {
-uint32_t ulReceivedValue, ulLEDStatus;
+uint32_t ulReceivedValue;
 const uint32_t ulExpectedValue = 100UL;
 
 	/* Remove compiler warning about unused parameter. */
 	( void ) pvParameters;
-
-	/* Initial cursor position to skip a line) */
-	g_printf_rcc( 5, 2, DEFAULT_SCREEN_COLOR, "LED on the Galileo board should be blinking." );
 
 	for( ;; )
 	{
@@ -229,16 +227,10 @@ const uint32_t ulExpectedValue = 100UL;
 		xQueueReceive( xQueue, &ulReceivedValue, portMAX_DELAY );
 
 		/*  To get here something must have been received from the queue, but
-		is it the expected value?  If it is, write a message to the COMP
-		port. */
+		is it the expected value?  If it is, print a message. */
 		if( ulReceivedValue == ulExpectedValue )
 		{
-			/* Toggle the LED, and also print the LED toggle state to the
-			UART. */
-			ulLEDStatus = ulBlinkLED();
-
-			/* Print the LED status */
-			g_printf_rcc( 6, 2, DEFAULT_SCREEN_COLOR, "LED State = %d\r\n", ( int ) ulLEDStatus );
+			screen_puts( "Receive\n" );
 			ulReceivedValue = 0U;
 		}
 	}
