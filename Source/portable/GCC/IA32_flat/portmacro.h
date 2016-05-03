@@ -142,6 +142,7 @@ in the portYIELD_INTERRUPT definition immediately below. */
 #define portAPIC_LVT_ERROR				( *( ( volatile uint32_t * ) ( configAPIC_BASE + 0x370UL ) ) )
 #define portAPIC_ERROR_STATUS			( *( ( volatile uint32_t * ) ( configAPIC_BASE + 0x280UL ) ) )
 #define portAPIC_LDR	 				( *( ( volatile uint32_t * ) ( configAPIC_BASE + 0xD0UL  ) ) )
+#define portAPIC_DFR	 				( *( ( volatile uint32_t * ) ( configAPIC_BASE + 0xE0UL  ) ) )
 #define portAPIC_TMRDIV 				( *( ( volatile uint32_t * ) ( configAPIC_BASE + 0x3E0UL ) ) )
 #define portAPIC_LVT_PERF 				( *( ( volatile uint32_t * ) ( configAPIC_BASE + 0x340UL ) ) )
 #define portAPIC_LVT_LINT0 				( *( ( volatile uint32_t * ) ( configAPIC_BASE + 0x350UL ) ) )

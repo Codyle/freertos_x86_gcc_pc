@@ -375,7 +375,7 @@ extern void vPortAPICErrorHandlerWrapper( void );
 extern void vPortAPICSpuriousHandler( void );
 
 	/* Initialise LAPIC to a well known state. */
-	portAPIC_LDR = 0xFFFFFFFF;
+	portAPIC_DFR = 0xFFFFFFFF;
 	portAPIC_LDR = ( ( portAPIC_LDR & 0x00FFFFFF ) | 0x00000001 );
 	portAPIC_LVT_TIMER = portAPIC_DISABLE;
 	portAPIC_LVT_PERF = portAPIC_NMI;
