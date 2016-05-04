@@ -118,6 +118,7 @@
 /* Priorities at which the tasks are created. */
 #define mainQUEUE_RECEIVE_TASK_PRIORITY		( tskIDLE_PRIORITY + 2 )
 #define	mainQUEUE_SEND_TASK_PRIORITY		( tskIDLE_PRIORITY + 1 )
+#define mainQUEUE_LOOP_TASK_PRIORITY		( tskIDLE_PRIORITY + 3 )
 
 /* The rate at which data is sent to the queue.  The 200ms value is converted
 to ticks using the portTICK_PERIOD_MS constant. */
@@ -135,6 +136,7 @@ the queue empty. */
  */
 static void prvQueueReceiveTask( void *pvParameters );
 static void prvQueueSendTask( void *pvParameters );
+static void prvLoopTask( void *pvParameters );
 
 /*
  * Called by main() to create the simply blinky style application if
@@ -167,7 +169,8 @@ void main_blinky( void )
 					mainQUEUE_RECEIVE_TASK_PRIORITY, 	/* The priority assigned to the task. */
 					NULL );								/* The task handle is not required, so NULL is passed. */
 
-		xTaskCreate( prvQueueSendTask, "TX", configMINIMAL_STACK_SIZE * 2, NULL, mainQUEUE_SEND_TASK_PRIORITY, NULL );
+		xTaskCreate( prvQueueSendTask, "Tx", configMINIMAL_STACK_SIZE * 2, NULL, mainQUEUE_SEND_TASK_PRIORITY, NULL );
+		xTaskCreate( prvLoopTask, "Loop", configMINIMAL_STACK_SIZE * 2, NULL, mainQUEUE_LOOP_TASK_PRIORITY, NULL );
 
 		/* Start the tasks and timer running. */
 		vTaskStartScheduler();
@@ -200,13 +203,13 @@ const uint32_t ulValueToSend = 100UL;
 	{
 		/* Place this task in the blocked state until it is time to run again. */
 		vTaskDelayUntil( &xNextWakeTime, mainQUEUE_SEND_FREQUENCY_MS );
+		screen_puts( "Send " );
 
 		/* Send to the queue - causing the queue receive task to unblock and
 		write to the COM port.  0 is used as the block time so the sending
 		operation will not block - it shouldn't need to block as the queue
 		should always be empty at this point in the code. */
 		xQueueSend( xQueue, &ulValueToSend, 0U );
-		screen_puts( "Send\n" );
 	}
 }
 /*-----------------------------------------------------------*/
@@ -230,10 +233,24 @@ const uint32_t ulExpectedValue = 100UL;
 		is it the expected value?  If it is, print a message. */
 		if( ulReceivedValue == ulExpectedValue )
 		{
-			screen_puts( "Receive\n" );
+			screen_puts( "Receive " );
 			ulReceivedValue = 0U;
 		}
 	}
 }
 /*-----------------------------------------------------------*/
 
+static void prvLoopTask( void *pvParameters )
+{
+	TickType_t xNextWakeTime;
+	xNextWakeTime = xTaskGetTickCount();
+
+	/* Remove compiler warning about unused parameter. */
+	( void ) pvParameters;
+
+	while(1)
+	{
+		vTaskDelayUntil( &xNextWakeTime, pdMS_TO_TICKS( 1000 ) );
+		screen_puts( "\n1 second\n" );
+	}
+}

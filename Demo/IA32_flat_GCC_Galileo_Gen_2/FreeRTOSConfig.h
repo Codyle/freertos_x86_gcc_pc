@@ -149,7 +149,7 @@
  */
 #define configUSE_COMMON_INTERRUPT_ENTRY_POINT	1
 
-#define configCPU_CLOCK_HZ						( 400000000UL )
+#define configCPU_CLOCK_HZ						( 1000000000UL )
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION	1
 #define configMINIMAL_STACK_SIZE				( 125 )
 #define configUSE_TICKLESS_IDLE					0
