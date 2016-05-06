@@ -137,7 +137,7 @@
 #include "IntQueue.h"
 
 /* Galileo includes. */
-#include "galileo_support.h"
+#include "x86_support.h"
 
 /* The rate at which the check task cycles if no errors have been detected, and
 if a [potential] error has been detected.  Increasing the toggle rate in the
@@ -297,8 +297,8 @@ BaseType_t xErrorFlag = pdFALSE;
 	xLastExpireTime = xTaskGetTickCount();
 
 	/* Message to wait for an update - first update won't happen for X seconds. */
-	g_printf_rcc( 5, 2, DEFAULT_SCREEN_COLOR, "Starting task check loop - Please wait for a status update." );
-	g_printf_rcc( 6, 2, DEFAULT_SCREEN_COLOR, "No task errors encountered." );
+	// g_printf_rcc( 5, 2, DEFAULT_SCREEN_COLOR, "Starting task check loop - Please wait for a status update." );
+	// g_printf_rcc( 6, 2, DEFAULT_SCREEN_COLOR, "No task errors encountered." );
 
 	for( ;; )
 	{
@@ -427,27 +427,27 @@ BaseType_t xErrorFlag = pdFALSE;
 
 		/* Print the hex bit pattern, time, and the loop number - just to make
 		sure the task is still cycling. */
-		g_printf_rcc( 5, 2, DEFAULT_SCREEN_COLOR,
+		/* g_printf_rcc( 5, 2, DEFAULT_SCREEN_COLOR,
 			"Status code: 0x%08x at task check time : %8ds,  loop #: %8d\r",
-			ulErrorOccurred, ( ulElapsedTimeInSeconds / 1000 ), ( ulCheckLoops + 1 ) );
+			ulErrorOccurred, ( ulElapsedTimeInSeconds / 1000 ), ( ulCheckLoops + 1 ) ); */
 
 		/* Print the current free heap size and the minimum ever free heap
 		size. */
-		g_printf_rcc( 6, 2, DEFAULT_SCREEN_COLOR,
+		/* g_printf_rcc( 6, 2, DEFAULT_SCREEN_COLOR,
 			"Current free heap: %d bytes, Min. free heap: %d bytes\r",
-			xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize() );
+			xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize() ); */
 
 		/* Show the first error that occurred on a separate line. */
 		if( ( xErrorFlag == pdFALSE ) && ( ulErrorOccurred != pdFALSE ) )
 		{
 			xErrorFlag = pdTRUE;
-			g_printf_rcc( 7, 2, ANSI_COLOR_RED,
+			/* g_printf_rcc( 7, 2, ANSI_COLOR_RED,
 				"Error  code: 0x%08x at check time : %8ds (First Error),  loop#: %8d \r",
-				ulErrorOccurred, (  ulElapsedTimeInSeconds / 1000 ), ( ulCheckLoops + 1 ) );
+				ulErrorOccurred, (  ulElapsedTimeInSeconds / 1000 ), ( ulCheckLoops + 1 ) ); */
 		}
 
 		/* Flash the LED */
-		ulBlinkLED();
+		// ulBlinkLED();
 
 		/* Crude Overflow check to keep printf() statements <= 8 digits long */
 		ulCheckLoops++;
