@@ -28,8 +28,8 @@
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  --------------------------------------------------------------------*/
 
-#ifndef __X86_H__
-#define __X86_H__
+#ifndef __X86_SUPPORT_H__
+#define __X86_SUPPORT_H__
 
 #ifdef __cplusplus
 	extern "C" {
@@ -98,5 +98,4 @@ void vInitializePIT(void);
 	} /* extern C */
 #endif
 
-#endif /* __X86_H__ */
-
+#endif /* __X86_SUPPORT_H__ */
