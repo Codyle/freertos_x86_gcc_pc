@@ -105,7 +105,7 @@
 #include "screen.h"
 
 /* Timer */
-#include "HPET.h"
+#include "x86_support.h"
 
 /* Set to 1 to sit in a loop on start up, allowing a debugger to connect to the
 application before main() executes. */
@@ -145,7 +145,6 @@ void vApplicationTickHook( void );
  * demo.
  */
 static void prvSetupHardware( void );
-static void prvCalibrateLVTimer( void );
 
 /*
  * If mainWAIT_FOR_DEBUG_CONNECTION is set to 1 then the following function will
@@ -319,11 +318,8 @@ static void prvSetupHardware( void )
 	}
 	#endif
 
-	/* Demonstrates how to calibrate LAPIC Timer.  The calibration value
-	calculated here may get overwritten when the scheduler starts. */
-	prvCalibrateLVTimer();
-
 	screen_clear();
+	vInitialize8259Chips();
 }
 /*-----------------------------------------------------------*/
 
@@ -364,33 +360,4 @@ size_t xSize;
 		portAPIC_EOI = 0;
 		x--;
 	} while( x > 0 );
-}
-/*-----------------------------------------------------------*/
-
-static void prvCalibrateLVTimer( void )
-{
-uint32_t uiInitialTimerCounts, uiCalibratedTimerCounts;
-
-	/* Disable LAPIC Counter. */
-	portAPIC_LVT_TIMER = portAPIC_DISABLE;
-
-	/* Calibrate the LV Timer counts to ensure it matches the HPET timer over
-	extended periods. */
-	uiInitialTimerCounts = ( ( configCPU_CLOCK_HZ >> 4UL ) / configTICK_RATE_HZ );
-	uiCalibratedTimerCounts = uiCalibrateTimer( 0, hpetLVTIMER );
-
-	if( uiCalibratedTimerCounts != 0 )
-	{
-		uiInitialTimerCounts = uiCalibratedTimerCounts;
-	}
-
-	/* Set the interrupt frequency. */
-	portAPIC_TMRDIV = portAPIC_DIV_16;
-	portAPIC_TIMER_INITIAL_COUNT = uiInitialTimerCounts;
-
-	/* Enable LAPIC Counter. */
-	portAPIC_LVT_TIMER = portAPIC_TIMER_PERIODIC | portAPIC_TIMER_INT_VECTOR;
-
-	/* Sometimes needed. */
-	portAPIC_TMRDIV = portAPIC_DIV_16;
 }
