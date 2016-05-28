@@ -44,6 +44,10 @@
 
 #define MUTEX_WAIT_TIME	(( TickType_t ) 8 )
 
+#define PIT_RELOAD          (1193182 / 100)
+#define PIT_RELOAD_LOW      (PIT_RELOAD & 0xff)
+#define PIT_RELOAD_HIGH     ((PIT_RELOAD >> 8) & 0xff)
+
 /*-----------------------------------------------------------------------
  * Function prototypes
  *------------------------------------------------------------------------
@@ -200,3 +204,40 @@ void setsegs()
 	outb(CLKBASE, (char) ((intrate >> 8) & 0xff));
  }
  /*-----------------------------------------------------------*/
+
+ /*-----------------------------------------------------------------------
+  * APIC timer calibration
+  *------------------------------------------------------------------------
+  */
+uint32_t ulCalibrateTimer()
+{
+    // software enable LAPIC
+    APIC_LOCAL_APIC_REG(APIC_SPURIOUS) = APIC_SW_ENABLE | 0x27;
+    APIC_LOCAL_APIC_REG(APIC_LVT_TMR) = 0x20;
+    APIC_LOCAL_APIC_REG(APIC_TMRDIV) = 0x3;
+
+    // set PIT reload value
+    outb(0x43, 0x34);
+    outb(0x40, PIT_RELOAD_LOW);
+    outb(0x40, PIT_RELOAD_HIGH);
+
+    // reset LAPIC timer
+    APIC_LOCAL_APIC_REG(APIC_TMRINITCNT) = 0xffffffff;
+ 
+    // wait until PIT counter wraps
+    while(1) {
+        inb(0x40);
+        if (inb(0x40) != PIT_RELOAD_HIGH) break;
+    }
+    while(1) {
+        inb(0x40);
+        if (inb(0x40) == PIT_RELOAD_HIGH) break;
+    }
+
+    // save LAPIC timer remain count
+    uint32_t remain_count = APIC_LOCAL_APIC_REG(APIC_TMRCURRCNT);
+    APIC_LOCAL_APIC_REG(APIC_LVT_TMR) = APIC_DISABLE;
+
+    // APIC timer ticks in 1 ms
+	return (0xffffffff - remain_count) / 10;
+}
