@@ -126,7 +126,7 @@ void vInitializePIT(void);
 #define TMR_PERIODIC                0x20000
 #define TMR_BASEDIV                 (1 << 20)
 
-uint32_t ulCalibrateTimer();
+void vCalibrateTimer(uint32_t timer_vector, uint32_t error_vector, uint32_t spurious_vector);
 
 #ifdef __cplusplus
 	} /* extern C */

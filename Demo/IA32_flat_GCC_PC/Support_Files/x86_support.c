@@ -209,11 +209,21 @@ void setsegs()
   * APIC timer calibration
   *------------------------------------------------------------------------
   */
-uint32_t ulCalibrateTimer()
+void vCalibrateTimer(uint32_t timer_vector, uint32_t error_vector, uint32_t spurious_vector)
 {
+    // initialize LAPIC to a well known state
+    APIC_LOCAL_APIC_REG(APIC_DFR) = 0xffffffff;
+    APIC_LOCAL_APIC_REG(APIC_LDR) = (APIC_LOCAL_APIC_REG(APIC_LDR) & 0x00ffffff) | 0x01;
+    APIC_LOCAL_APIC_REG(APIC_LVT_TMR) = APIC_DISABLE;
+    APIC_LOCAL_APIC_REG(APIC_LVT_PERF) = APIC_NMI;
+    APIC_LOCAL_APIC_REG(APIC_LVT_LINT0) = APIC_DISABLE;
+    APIC_LOCAL_APIC_REG(APIC_LVT_LINT1) = APIC_DISABLE;
+    APIC_LOCAL_APIC_REG(APIC_TASKPRIOR) = 0;
+
     // software enable LAPIC
-    APIC_LOCAL_APIC_REG(APIC_SPURIOUS) = APIC_SW_ENABLE | 0x27;
-    APIC_LOCAL_APIC_REG(APIC_LVT_TMR) = 0x20;
+    APIC_LOCAL_APIC_REG(APIC_SPURIOUS) = APIC_SW_ENABLE | spurious_vector;
+    APIC_LOCAL_APIC_REG(APIC_LVT_ERR) = error_vector;
+    APIC_LOCAL_APIC_REG(APIC_LVT_TMR) = timer_vector;
     APIC_LOCAL_APIC_REG(APIC_TMRDIV) = 0x3;
 
     // set PIT reload value
@@ -238,6 +248,8 @@ uint32_t ulCalibrateTimer()
     uint32_t remain_count = APIC_LOCAL_APIC_REG(APIC_TMRCURRCNT);
     APIC_LOCAL_APIC_REG(APIC_LVT_TMR) = APIC_DISABLE;
 
-    // APIC timer ticks in 1 ms
-	return (0xffffffff - remain_count) / 10;
+    // start periodic mode with the correct initial count
+    APIC_LOCAL_APIC_REG(APIC_LVT_TMR) = timer_vector | TMR_PERIODIC;
+    APIC_LOCAL_APIC_REG(APIC_TMRDIV) = 0x3;
+    APIC_LOCAL_APIC_REG(APIC_TMRINITCNT) = (0xffffffff - remain_count) / 10; // APIC timer ticks in 1 ms
 }
