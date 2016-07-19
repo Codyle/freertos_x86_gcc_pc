@@ -95,6 +95,12 @@ void vSetIRQMask(uint8_t IRQNumber);
 void vInitializePIT(void);
 
 //---------------------------------------------------------------------
+// Screen functions
+//---------------------------------------------------------------------
+void vScreenClear(void);
+void vScreenPutchar(int c);
+
+//---------------------------------------------------------------------
 // APIC timer definitions
 //---------------------------------------------------------------------
 #define APIC_IA32_APIC_BASE_MSR     0x1b

@@ -112,8 +112,8 @@
 #include "task.h"
 #include "semphr.h"
 
-/* For output message. */
-#include "screen.h"
+/* printf. */
+#include "x86_support.h"
 
 /* Priorities at which the tasks are created. */
 #define mainQUEUE_RECEIVE_TASK_PRIORITY		( tskIDLE_PRIORITY + 2 )
@@ -203,7 +203,7 @@ const uint32_t ulValueToSend = 100UL;
 	{
 		/* Place this task in the blocked state until it is time to run again. */
 		vTaskDelayUntil( &xNextWakeTime, mainQUEUE_SEND_FREQUENCY_MS );
-		screen_puts( "Send " );
+		printf( "Send " );
 
 		/* Send to the queue - causing the queue receive task to unblock and
 		write to the COM port.  0 is used as the block time so the sending
@@ -233,7 +233,7 @@ const uint32_t ulExpectedValue = 100UL;
 		is it the expected value?  If it is, print a message. */
 		if( ulReceivedValue == ulExpectedValue )
 		{
-			screen_puts( "Receive " );
+			printf( "Receive " );
 			ulReceivedValue = 0U;
 		}
 	}
@@ -251,6 +251,6 @@ static void prvLoopTask( void *pvParameters )
 	while(1)
 	{
 		vTaskDelayUntil( &xNextWakeTime, pdMS_TO_TICKS( 1000 ) );
-		screen_puts( "\n1 second\n" );
+		printf( "\n1 second\n" );
 	}
 }

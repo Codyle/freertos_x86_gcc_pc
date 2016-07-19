@@ -101,10 +101,7 @@
 #include "TaskNotify.h"
 #include "IntQueue.h"
 
-/* For output message */
-#include "screen.h"
-
-/* Timer */
+/* Timer and printf */
 #include "x86_support.h"
 
 /* Set to 1 to sit in a loop on start up, allowing a debugger to connect to the
@@ -178,12 +175,12 @@ int main( void )
 	of this file. */
 	#if( mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1 )
 	{
-		screen_puts( "Running main_blinky().\n" );
+		printf( "Running main_blinky().\n" );
 		main_blinky();
 	}
 	#else
 	{
-		screen_puts( "Running main_full().\n" );
+		printf( "Running main_full().\n" );
   		main_full();
 	}
 	#endif
@@ -249,13 +246,13 @@ static void prvDisplayAssertion( const char * pcFile, unsigned long ulLine )
 	( void ) pcFile;
 	( void ) ulLine;
 
-	screen_puts( "prvDisplayAssertion()\n" );
+	printf( "prvDisplayAssertion()\n" );
 }
 /*-----------------------------------------------------------*/
 
 static void prvClearAssertionLine( void )
 {
-	screen_puts( "prvClearAssertionLine()\n" );
+	printf( "prvClearAssertionLine()\n" );
 }
 /*-----------------------------------------------------------*/
 
@@ -318,7 +315,7 @@ static void prvSetupHardware( void )
 	}
 	#endif
 
-	screen_clear();
+	vScreenClear();
 	vInitialize8259Chips();
 }
 /*-----------------------------------------------------------*/
