@@ -1,51 +1,48 @@
-proj_dir    :=  .
+PROJ_DIR    :=  .
+INC_DIR     :=  \
+                -I$(PROJ_DIR)/../../Source/include \
+                -I$(PROJ_DIR)/../../Source/portable/Common/include \
+                -I$(PROJ_DIR)/../../Source/portable/IA32_flat \
+                -I$(PROJ_DIR)/../../Source/portable/Support_Files \
+                -I$(PROJ_DIR)
+SRC_DIR     :=  \
+                $(PROJ_DIR)/../../Source \
+                $(PROJ_DIR)/../../Source/portable/MemMang \
+                $(PROJ_DIR)/../../Source/portable/IA32_flat \
+                $(PROJ_DIR)/../../Source/portable/Support_Files \
+                $(PROJ_DIR)
+BUILD_DIR   :=  $(PROJ_DIR)/build
+OBJ_DIR     :=  $(BUILD_DIR)/obj
 
-inc_dir     :=  \
-                -I$(proj_dir)/../../Source/include \
-                -I$(proj_dir)/../../Source/portable/Common/include \
-                -I$(proj_dir)/../../Source/portable/IA32_flat \
-                -I$(proj_dir)/../../Source/portable/Support_Files \
-                -I$(proj_dir)
+SRC_C       :=  $(foreach dir,$(SRC_DIR),$(wildcard $(dir)/*.c))
+SRC_S       :=  $(foreach dir,$(SRC_DIR),$(wildcard $(dir)/*.S))
+OBJ         :=  $(foreach src,$(SRC_C),$(OBJ_DIR)/$(patsubst %.c,%.o,$(notdir $(src)))) \
+                $(foreach src,$(SRC_S),$(OBJ_DIR)/$(patsubst %.S,%.o,$(notdir $(src))))
 
-src_dir     :=  \
-                $(proj_dir)/../../Source \
-                $(proj_dir)/../../Source/portable/MemMang \
-                $(proj_dir)/../../Source/portable/IA32_flat \
-                $(proj_dir)/../../Source/portable/Support_Files \
-                $(proj_dir)
+BUILD       :=  RTOSDemo.elf
+MAP         :=  RTOSDemo.map
+LDS         :=  $(PROJ_DIR)/../../Source/portable/IA32_flat/elf_ia32_efi.lds
 
-lds         :=  $(proj_dir)/../../Source/portable/IA32_flat/elf_ia32_efi.lds
+CC          :=  i686-elf-gcc
+LDFLAGS     :=  -nostdlib -Xlinker -T -Xlinker $(LDS) -Xlinker -Map=$(BUILD_DIR)/$(MAP) -Xlinker --gc-sections
+CFLAGS      :=  $(INC_DIR) -O0 -g3 -Wall -Wextra -c -fmessage-length=0 -march=pentium -Wno-ignored-qualifiers -mno-ms-bitfields -ffunction-sections -ffreestanding
+ASFLAGS     :=  $(INC_DIR) -Wa,--gdwarf2 -Wa,-march=pentium -c
 
-build_dir   :=  $(proj_dir)/build
+.PHONY: $(SRC_C) $(SRC_S) clean
 
-obj_dir     :=  $(build_dir)/obj
+all: $(BUILD)
 
-src_c       :=  $(foreach dir,$(src_dir),$(wildcard $(dir)/*.c))
+$(BUILD): $(SRC_C) $(SRC_S)
+	$(CC) $(LDFLAGS) -o $(BUILD_DIR)/$(BUILD) $(OBJ)
 
-src_s       :=  $(foreach dir,$(src_dir),$(wildcard $(dir)/*.S))
+$(SRC_C): | $(OBJ_DIR)
+	$(CC) $(CFLAGS) -o $(OBJ_DIR)/$(patsubst %.c,%.o,$(notdir $@)) $@
 
-obj         :=  $(foreach src,$(src_c),$(obj_dir)/$(patsubst %.c,%.o,$(notdir $(src)))) \
-                $(foreach src,$(src_s),$(obj_dir)/$(patsubst %.S,%.o,$(notdir $(src))))
+$(SRC_S): | $(OBJ_DIR)
+	$(CC) $(ASFLAGS) -o $(OBJ_DIR)/$(patsubst %.S,%.o,$(notdir $@)) $@
 
-map         :=  RTOSDemo.map
-
-build       :=  RTOSDemo.elf
-
-.PHONY: $(src_c) $(src_s) clean
-
-all: $(src_c) $(src_s)
-	i686-elf-gcc -nostdlib -Xlinker -T -Xlinker $(proj_dir)/$(lds) -Xlinker -Map=$(build_dir)/$(map) -Xlinker --gc-sections \
-        -o $(build_dir)/$(build) $(obj)
-
-$(src_c): | $(obj_dir)
-	i686-elf-gcc $(inc_dir) -O0 -g3 -Wall -Wextra -c -fmessage-length=0 -march=pentium -Wno-ignored-qualifiers -mno-ms-bitfields -ffunction-sections -ffreestanding -o $(obj_dir)/$(patsubst %.c,%.o,$(notdir $@)) $@
-
-$(src_s): | $(obj_dir)
-	i686-elf-gcc $(inc_dir) -Wa,--gdwarf2 -Wa,-march=pentium -c \
-        -o $(obj_dir)/$(patsubst %.S,%.o,$(notdir $@)) $@
-
-$(obj_dir):
-	mkdir -p $(obj_dir)
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
 
 clean:
-	rm -rf $(build_dir)
+	rm -rf $(BUILD_DIR)
