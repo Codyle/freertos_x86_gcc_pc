@@ -44,7 +44,8 @@
 
 #define MUTEX_WAIT_TIME	(( TickType_t ) 8 )
 
-#define PIT_RELOAD          (1193182 / 100)
+#define PIT_SECOND_DIV      (19)
+#define PIT_RELOAD          (1193182 / PIT_SECOND_DIV)
 #define PIT_RELOAD_LOW      (PIT_RELOAD & 0xff)
 #define PIT_RELOAD_HIGH     ((PIT_RELOAD >> 8) & 0xff)
 
@@ -282,5 +283,5 @@ void vCalibrateTimer(uint32_t timer_vector, uint32_t error_vector, uint32_t spur
     // start periodic mode with the correct initial count
     APIC_LOCAL_APIC_REG(APIC_LVT_TMR) = timer_vector | TMR_PERIODIC;
     APIC_LOCAL_APIC_REG(APIC_TMRDIV) = 0x3;
-    APIC_LOCAL_APIC_REG(APIC_TMRINITCNT) = (0xffffffff - remain_count) / 10; // APIC timer ticks in 1 ms
+    APIC_LOCAL_APIC_REG(APIC_TMRINITCNT) = ((0xffffffff - remain_count) * PIT_SECOND_DIV) / 1000; // APIC timer ticks in 1 ms
 }
