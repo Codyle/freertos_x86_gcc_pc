@@ -1,48 +1,52 @@
-PROJ_DIR    :=  .
-INC_DIR     :=  \
-                -I$(PROJ_DIR)/../../Source/include \
-                -I$(PROJ_DIR)/../../Source/portable/Common/include \
-                -I$(PROJ_DIR)/../../Source/portable/IA32_flat \
-                -I$(PROJ_DIR)/../../Source/portable/Support_Files \
-                -I$(PROJ_DIR)
-SRC_DIR     :=  \
-                $(PROJ_DIR)/../../Source \
-                $(PROJ_DIR)/../../Source/portable/MemMang \
-                $(PROJ_DIR)/../../Source/portable/IA32_flat \
-                $(PROJ_DIR)/../../Source/portable/Support_Files \
-                $(PROJ_DIR)
-BUILD_DIR   :=  $(PROJ_DIR)/build
-OBJ_DIR     :=  $(BUILD_DIR)/obj
+PROJECT         :=  Blinky
+SOURCE_ROOT     :=  ../..
+BUILD_DIR       :=  build
 
-SRC_C       :=  $(foreach dir,$(SRC_DIR),$(wildcard $(dir)/*.c))
-SRC_S       :=  $(foreach dir,$(SRC_DIR),$(wildcard $(dir)/*.S))
-OBJ         :=  $(foreach src,$(SRC_C),$(OBJ_DIR)/$(patsubst %.c,%.o,$(notdir $(src)))) \
-                $(foreach src,$(SRC_S),$(OBJ_DIR)/$(patsubst %.S,%.o,$(notdir $(src))))
+INCLUDE_DIR     :=  -I$(SOURCE_ROOT)/Source/include \
+                    -I$(SOURCE_ROOT)/Source/portable/Common/include \
+                    -I$(SOURCE_ROOT)/Source/portable/IA32_flat \
+                    -I$(SOURCE_ROOT)/Source/portable/Support_Files \
+                    -I$(SOURCE_ROOT)/Demo/$(PROJECT)
+SOURCE_DIR      :=  $(SOURCE_ROOT)/Source \
+                    $(SOURCE_ROOT)/Demo/$(PROJECT)
+SOURCE_EXCLUDE  :=  $(SOURCE_ROOT)/Source/portable/Common \
+                    $(SOURCE_ROOT)/Source/portable/MemMang/heap_1.c \
+                    $(SOURCE_ROOT)/Source/portable/MemMang/heap_2.c \
+                    $(SOURCE_ROOT)/Source/portable/MemMang/heap_3.c \
+                    $(SOURCE_ROOT)/Source/portable/MemMang/heap_5.c
 
-BUILD       :=  RTOSDemo.elf
-MAP         :=  RTOSDemo.map
-LDS         :=  $(PROJ_DIR)/../../Source/portable/IA32_flat/elf_ia32_efi.lds
+OBJECT_ROOT     :=  $(BUILD_DIR)/obj
+BUILD           :=  $(BUILD_DIR)/$(PROJECT).elf
+MAP             :=  $(BUILD_DIR)/$(PROJECT).map
+LDS             :=  $(SOURCE_ROOT)/Source/portable/IA32_flat/elf_ia32_efi.lds
 
-CC          :=  i686-elf-gcc
-LDFLAGS     :=  -nostdlib -Xlinker -T -Xlinker $(LDS) -Xlinker -Map=$(BUILD_DIR)/$(MAP) -Xlinker --gc-sections
-CFLAGS      :=  $(INC_DIR) -O0 -g3 -Wall -Wextra -c -fmessage-length=0 -march=pentium -Wno-ignored-qualifiers -mno-ms-bitfields -ffunction-sections -ffreestanding
-ASFLAGS     :=  $(INC_DIR) -Wa,--gdwarf2 -Wa,-march=pentium -c
+find             =  $(filter-out $(SOURCE_EXCLUDE),$(wildcard $1/$2)) \
+                    $(foreach dir,$(filter-out $(SOURCE_EXCLUDE),$(wildcard $1/*)),$(call find,$(dir),$2))
+SOURCE_C        :=  $(foreach dir,$(SOURCE_DIR),$(call find,$(dir),*.c))
+SOURCE_S        :=  $(foreach dir,$(SOURCE_DIR),$(call find,$(dir),*.S))
+OBJECT          :=  $(patsubst $(SOURCE_ROOT)%,$(OBJECT_ROOT)%,$(patsubst %.c,%.o,$(SOURCE_C))) \
+                    $(patsubst $(SOURCE_ROOT)%,$(OBJECT_ROOT)%,$(patsubst %.S,%.o,$(SOURCE_S)))
 
-.PHONY: $(SRC_C) $(SRC_S) clean
+CC              :=  i686-elf-gcc
+LDFLAGS         :=  -nostdlib -Xlinker -T -Xlinker $(LDS) -Xlinker -Map=$(MAP) -Xlinker --gc-sections
+CFLAGS          :=  $(INCLUDE_DIR) -O0 -g3 -Wall -Wextra -c -fmessage-length=0 -march=pentium \
+                    -Wno-ignored-qualifiers -mno-ms-bitfields -ffunction-sections -ffreestanding
+SFLAGS          :=  $(INCLUDE_DIR) -Wa,--gdwarf2 -Wa,-march=pentium -c
+
+.PHONY: clean
 
 all: $(BUILD)
 
-$(BUILD): $(SRC_C) $(SRC_S)
-	$(CC) $(LDFLAGS) -o $(BUILD_DIR)/$(BUILD) $(OBJ)
+$(BUILD): $(OBJECT)
+	$(CC) $(LDFLAGS) -o $(BUILD) $(OBJECT)
 
-$(SRC_C): | $(OBJ_DIR)
-	$(CC) $(CFLAGS) -o $(OBJ_DIR)/$(patsubst %.c,%.o,$(notdir $@)) $@
+$(OBJECT_ROOT)/%.o: $(SOURCE_ROOT)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -o $@ $<
 
-$(SRC_S): | $(OBJ_DIR)
-	$(CC) $(ASFLAGS) -o $(OBJ_DIR)/$(patsubst %.S,%.o,$(notdir $@)) $@
-
-$(OBJ_DIR):
-	mkdir -p $(OBJ_DIR)
+$(OBJECT_ROOT)/%.o: $(SOURCE_ROOT)/%.S
+	@mkdir -p $(dir $@)
+	$(CC) $(SFLAGS) -o $@ $<
 
 clean:
 	rm -rf $(BUILD_DIR)
