@@ -27,10 +27,12 @@ SOURCE_S        :=  $(foreach dir,$(SOURCE_DIR),$(call find,$(dir),*.S))
 OBJECT          :=  $(patsubst $(SOURCE_ROOT)%,$(OBJECT_ROOT)%,$(patsubst %.c,%.o,$(SOURCE_C))) \
                     $(patsubst $(SOURCE_ROOT)%,$(OBJECT_ROOT)%,$(patsubst %.S,%.o,$(SOURCE_S)))
 
-CC              :=  i686-elf-gcc
+LD              :=  i686-elf-gcc
 LDFLAGS         :=  -nostdlib -Xlinker -T -Xlinker $(LDS) -Xlinker -Map=$(MAP) -Xlinker --gc-sections
+CC              :=  i686-elf-gcc
 CFLAGS          :=  $(INCLUDE_DIR) -O0 -g3 -Wall -Wextra -c -fmessage-length=0 -march=pentium \
                     -Wno-ignored-qualifiers -mno-ms-bitfields -ffunction-sections -ffreestanding
+AS              :=  i686-elf-gcc
 SFLAGS          :=  $(INCLUDE_DIR) -Wa,--gdwarf2 -Wa,-march=pentium -c
 
 .PHONY: clean
@@ -38,7 +40,7 @@ SFLAGS          :=  $(INCLUDE_DIR) -Wa,--gdwarf2 -Wa,-march=pentium -c
 all: $(BUILD)
 
 $(BUILD): $(OBJECT)
-	$(CC) $(LDFLAGS) -o $(BUILD) $(OBJECT)
+	$(LD) $(LDFLAGS) -o $(BUILD) $(OBJECT)
 
 $(OBJECT_ROOT)/%.o: $(SOURCE_ROOT)/%.c
 	@mkdir -p $(dir $@)
@@ -46,7 +48,7 @@ $(OBJECT_ROOT)/%.o: $(SOURCE_ROOT)/%.c
 
 $(OBJECT_ROOT)/%.o: $(SOURCE_ROOT)/%.S
 	@mkdir -p $(dir $@)
-	$(CC) $(SFLAGS) -o $@ $<
+	$(AS) $(SFLAGS) -o $@ $<
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -f $(BUILD) $(MAP) $(OBJECT)
