@@ -3,17 +3,17 @@ SOURCE_ROOT     :=  ../..
 BUILD_DIR       :=  build
 
 INCLUDE_DIR     :=  -I$(SOURCE_ROOT)/Source/include \
-                    -I$(SOURCE_ROOT)/Source/portable/Common/include \
                     -I$(SOURCE_ROOT)/Source/portable/IA32_flat \
                     -I$(SOURCE_ROOT)/Source/portable/Support_Files \
+                    -I$(SOURCE_ROOT)/Demo/Common/include \
                     -I$(SOURCE_ROOT)/Demo/$(PROJECT)
 SOURCE_DIR      :=  $(SOURCE_ROOT)/Source \
                     $(SOURCE_ROOT)/Demo/$(PROJECT)
-SOURCE_EXCLUDE  :=  $(SOURCE_ROOT)/Source/portable/Common \
-                    $(SOURCE_ROOT)/Source/portable/MemMang/heap_1.c \
+SOURCE_EXCLUDE  :=  $(SOURCE_ROOT)/Source/portable/MemMang/heap_1.c \
                     $(SOURCE_ROOT)/Source/portable/MemMang/heap_2.c \
                     $(SOURCE_ROOT)/Source/portable/MemMang/heap_3.c \
-                    $(SOURCE_ROOT)/Source/portable/MemMang/heap_5.c
+                    $(SOURCE_ROOT)/Source/portable/MemMang/heap_5.c \
+                    $(SOURCE_ROOT)/Demo/Common
 
 OBJECT_ROOT     :=  $(BUILD_DIR)/obj
 BUILD           :=  $(BUILD_DIR)/$(PROJECT).elf
