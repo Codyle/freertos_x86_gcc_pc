@@ -45,9 +45,7 @@
 //---------------------------------------------------------------------
 // Printf prototype
 //---------------------------------------------------------------------
-extern int printf( const char *format, ... );
-extern int sprintf( char *out, const char *format, ...);
-extern int snprintf( char *buf, unsigned int count, const char *format, ... );
+extern void printf( const char *format, ... );
 
 //---------------------------------------------------------------------
 // Prototypes (assembly language functions in startup.S)
